@@ -1,7 +1,7 @@
 {
   "name": "prop-types-faker",
   "version": "0.0.1",
-  "description": "Fixture data based on React propTypes",
+  "description": "Generate fixture data based on React propTypes",
   "main": "./src/faker.js",
   "scripts": {
     "build": "webpack --mode=production",
