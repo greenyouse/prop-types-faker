@@ -7,6 +7,7 @@
     "build": "webpack --mode=production",
     "eslint": "eslint src",
     "eslint:fix": "eslint --fix src",
+    "healthcheck": "npm run test && npm run eslint",
     "test": "jest --coverage",
     "test:review": "xdg-open coverage/lcov-report/index.html"
   },
@@ -26,6 +27,9 @@
     "url": "https://github.com/greenyouse/prop-types-faker/issues"
   },
   "homepage": "https://github.com/greenyouse/propTypes-faker#readme",
+  "husky": {
+    "pre-commit": "npm run healthcheck"
+  },
   "devDependencies": {
     "@babel/core": "^7.4.5",
     "@babel/preset-env": "^7.4.5",
@@ -35,6 +39,7 @@
     "eslint-plugin-import": "^2.17.3",
     "eslint-plugin-jsx-a11y": "^6.2.1",
     "eslint-plugin-react": "^7.13.0",
+    "husky": "^2.3.0",
     "jest": "^24.8.0",
     "prop-types": "^15.7.2",
     "webpack": "^4.32.2",
