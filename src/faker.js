@@ -72,7 +72,8 @@ export function getFakeSymbol() {
 }
 export function getFakeArrayOf(childProps) {
   return Object.entries(childProps).reduce((acc, [key, prop]) => ({
-    ...acc, [key]: parsePropType(prop)
+    // eslint-disable-next-line no-use-before-define
+    ...acc, [key]: parsePropType(prop),
   }), {});
 }
 

@@ -3,7 +3,7 @@ import propTypes from 'prop-types';
 import jsc, { property } from 'jsverify';
 import * as faker from './faker';
 import { validHTMLElements } from './utils';
-import { setRandomness, getRandomness } from './randomness';
+import { setRandomness } from './randomness';
 
 jest.mock('./randomness');
 
@@ -147,8 +147,8 @@ describe('src/faker.js', () => {
       'nearray nestring', (keys) => {
         const allKeys = new Set(keys);
         const typeMap = keys.reduce((acc, key) => ({
-          ...acc, ...buildTypeMap(key, 'string')
-        }), {})
+          ...acc, ...buildTypeMap(key, 'string'),
+        }), {});
 
         return Object.keys(typeMap)
           .every(key => allKeys.has(key));
