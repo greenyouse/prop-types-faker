@@ -28,7 +28,9 @@
   },
   "homepage": "https://github.com/greenyouse/propTypes-faker#readme",
   "husky": {
-    "pre-commit": "npm run healthcheck"
+    "hooks": {
+      "pre-commit": "npm run healthcheck"
+    }
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",
