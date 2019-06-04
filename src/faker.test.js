@@ -1,3 +1,4 @@
+/* eslint-disable react/forbid-foreign-prop-types */
 import React from 'react';
 import propTypes from 'prop-types';
 import jsc, { property } from 'jsverify';
@@ -15,10 +16,18 @@ describe('src/faker.js', () => {
       x => x - 1,
     );
 
+    function comparePropLength(el, fakeProps) {
+      return (
+        // eslint-disable-next-line react/forbid-foreign-prop-types
+        Object.entries(el.propTypes).length
+        === Object.entries(fakeProps).length
+      );
+    }
+
     beforeEach(() => {
       element = () => React.createElement('div', [], '');
       element.propTypes = {
-        foo: propTypes.string,
+        foo: propTypes.string.isRequired,
         bar: propTypes.bool,
       };
     });
@@ -45,13 +54,17 @@ describe('src/faker.js', () => {
       return randomness === lastCall;
     });
 
-    function comparePropLength(el, fakeProps) {
-      return (
-        // eslint-disable-next-line react/forbid-foreign-prop-types
-        Object.entries(el.propTypes).length
-        === Object.entries(fakeProps).length
-      );
-    }
+    property('required props always return', () => {
+      delete element.propTypes.bar;
+      const props = faker.generateFake(element, { required: false });
+      return typeof props.foo === 'string';
+    });
+
+    property('non-required props can return null', () => {
+      delete element.propTypes.foo;
+      const props = faker.generateFake(element, { required: false });
+      return props.bar === null || typeof props.bar === 'boolean';
+    });
 
     property('returns a propType for each propType given', () => {
       const twoProps = faker.generateFake(element);
@@ -107,6 +120,9 @@ describe('src/faker.js', () => {
           .every(prop => prop === null
             || expectedTypes.has(prop.type.name));
       });
+  });
+
+  describe('parsePropType', () => {
   });
 
   describe('getFakeAny', () => {
