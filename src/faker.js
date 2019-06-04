@@ -8,6 +8,8 @@ import { reactElement, htmlElementGenerator } from './generators/react-element';
 import { anyGenerator, any } from './generators/any';
 import { symbol, symbolGenerator } from './generators/symbol';
 
+let useRequired;
+
 /**
  * Fake functions for each propType are given here.
  * The return value is the fake value.
@@ -87,9 +89,30 @@ export function getFakeShape(childProps) {
   return Object.values(childProps).map(parsePropType);
 }
 
-// TODO: could write a comprehensive integration test suite
-/* istanbul ignore next */
-function parsePropType(prop) {
+/**
+ * Filters out the non-required propTypes 50% of
+ * the time by returning null
+ *
+ * @param {Object} prop
+ * @returns {Object|null}
+ */
+export function filterRequiredProps(prop) {
+  const { required } = prop;
+
+  if (required === true) return prop;
+
+  return jsc.random(0, 1) === 0 ? prop : null;
+}
+
+// TODO: finish up unit tests for this
+function parsePropType(originalProp) {
+  let prop = originalProp;
+  if (!useRequired) {
+    prop = filterRequiredProps(prop);
+
+    if (!prop) return null;
+  }
+
   switch (prop.type.name) {
     case 'any':
       return getFakeAny();
@@ -148,7 +171,6 @@ export function generateFake(reactComponent = {}, options = {}) {
     // eslint-disable-next-line no-unused-vars
     state = 'clean',
     randomness = 1000,
-    // TODO: do this later too
     required = true,
   } = options;
 
@@ -158,6 +180,8 @@ export function generateFake(reactComponent = {}, options = {}) {
 
   // set the randomness globally for all child functions
   setRandomness(randomness);
+  // set whether to use required props
+  useRequired = required;
 
   const propTypes = parsePropTypes(reactComponent);
 

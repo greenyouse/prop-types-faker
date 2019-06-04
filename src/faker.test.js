@@ -70,6 +70,45 @@ describe('src/faker.js', () => {
     });
   });
 
+  describe('filterRequiredProps', () => {
+    function makePropType(name, required) {
+      return { type: { name }, required };
+    }
+
+    property('required props return the prop-type',
+      jsc.nearray(
+        jsc.oneof(
+          jsc.constant('string'),
+          jsc.constant('bool'),
+          jsc.constant('number'),
+        ),
+      ),
+      (types) => {
+        const expectedTypes = new Set(['string', 'bool', 'number']);
+        const props = types.map(propType => makePropType(propType, true));
+
+        return props.map(faker.filterRequiredProps)
+          .every(prop => expectedTypes.has(prop.type.name));
+      });
+
+    property('non-required props can return null',
+      jsc.nearray(
+        jsc.oneof(
+          jsc.constant('string'),
+          jsc.constant('bool'),
+          jsc.constant('number'),
+        ),
+      ),
+      (types) => {
+        const expectedTypes = new Set(['string', 'bool', 'number']);
+        const props = types.map(propType => makePropType(propType, false));
+
+        return props.map(faker.filterRequiredProps)
+          .every(prop => prop === null
+            || expectedTypes.has(prop.type.name));
+      });
+  });
+
   describe('getFakeAny', () => {
     property('is anything', () => {
       const anything = faker.getFakeAny();
