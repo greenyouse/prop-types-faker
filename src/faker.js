@@ -111,6 +111,8 @@ function parsePropType(prop) {
       return getFakeString();
     case 'symbol':
       return getFakeSymbol();
+    case 'node':
+      return getFakeNode();
     case 'arrayOf':
       return getFakeArrayOf(prop.type.value);
     case 'instanceOf':
