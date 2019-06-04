@@ -5,9 +5,9 @@
   "main": "./src/faker.js",
   "scripts": {
     "build": "webpack --mode=production",
-    "eslint": "eslint src",
-    "eslint:fix": "eslint --fix src",
-    "healthcheck": "npm run test && npm run eslint",
+    "lint": "eslint src",
+    "lint:fix": "eslint --fix src",
+    "healthcheck": "npm run test && npm run lint",
     "test": "jest --coverage",
     "test:review": "xdg-open coverage/lcov-report/index.html"
   },
