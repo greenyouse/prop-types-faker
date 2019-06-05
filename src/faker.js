@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import jsc from 'jsverify';
 import parsePropTypes from 'parse-prop-types';
 import { setRandomness } from './randomness';
@@ -6,7 +5,7 @@ import { takeSample } from './utils';
 
 import { reactElement, htmlElementGenerator } from './generators/react-element';
 import { anyGenerator, any } from './generators/any';
-import { symbol, symbolGenerator } from './generators/symbol';
+import { symbol } from './generators/symbol';
 
 /**
  * Fake functions for each propType are given here.
