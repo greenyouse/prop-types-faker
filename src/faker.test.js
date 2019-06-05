@@ -30,6 +30,8 @@ describe('src/faker.js', () => {
         foo: propTypes.string.isRequired,
         bar: propTypes.bool,
       };
+
+      jest.resetAllMocks();
     });
 
     property('error returned when no component is given',
@@ -83,46 +85,122 @@ describe('src/faker.js', () => {
     });
   });
 
-  describe('filterRequiredProps', () => {
+  describe('parsePropType', () => {
     function makePropType(name, required) {
       return { type: { name }, required };
     }
 
-    property('required props return the prop-type',
-      jsc.nearray(
-        jsc.oneof(
-          jsc.constant('string'),
-          jsc.constant('bool'),
-          jsc.constant('number'),
-        ),
-      ),
-      (types) => {
-        const expectedTypes = new Set(['string', 'bool', 'number']);
-        const props = types.map(propType => makePropType(propType, true));
+    property('unexpected prop types have an error message', () => {
+      const error = faker.parsePropType({ type: {} });
+      return error === 'error: prop type undefined not supported';
+    });
 
-        return props.map(faker.filterRequiredProps)
-          .every(prop => expectedTypes.has(prop.type.name));
+    property('required props return the propType',
+      jsc.oneof(
+        jsc.constant('string'),
+        jsc.constant('bool'),
+        jsc.constant('number'),
+      ),
+      (type) => {
+        const prop = makePropType(type, true);
+        const value = faker.parsePropType(prop, false);
+
+        return typeof value === 'string'
+          || typeof value === 'boolean'
+          || typeof value === 'number';
       });
 
     property('non-required props can return null',
-      jsc.nearray(
-        jsc.oneof(
-          jsc.constant('string'),
-          jsc.constant('bool'),
-          jsc.constant('number'),
-        ),
+      jsc.oneof(
+        jsc.constant('string'),
+        jsc.constant('bool'),
+        jsc.constant('number'),
       ),
-      (types) => {
-        const expectedTypes = new Set(['string', 'bool', 'number']);
-        const props = types.map(propType => makePropType(propType, false));
+      (type) => {
+        const prop = makePropType(type, false);
+        const value = faker.parsePropType(prop, false);
 
-        return props.map(faker.filterRequiredProps)
-          .every(prop => prop === null
-            || expectedTypes.has(prop.type.name));
+        return value === null
+          || typeof value === 'string'
+          || typeof value === 'boolean'
+          || typeof value === 'number';
       });
-  });
 
-  describe('parsePropType', () => {
+    property('expected prop types return values',
+      jsc.oneof(
+        jsc.constant('any'),
+        jsc.constant('array'),
+        jsc.constant('bool'),
+        jsc.constant('custom'),
+        jsc.constant('element'),
+        jsc.constant('func'),
+        jsc.constant('number'),
+        jsc.constant('object'),
+        jsc.constant('string'),
+        jsc.constant('symbol'),
+        jsc.constant('node'),
+      ),
+      (type) => {
+        const value = faker.parsePropType({ type: { name: type } });
+        return value !== null;
+      });
+
+    // jest spyOn doesn't work well here...
+    property('returns array of propTypes for arrayOf and oneOfType',
+      jsc.oneof(
+        jsc.constant('arrayOf'),
+        jsc.constant('oneOfType'),
+      ),
+      (type) => {
+        const prop = {
+          type: {
+            name: type,
+            value: {
+              foo: { type: { name: 'bool' }, required: true },
+            },
+          },
+        };
+
+        const value = faker.parsePropType(prop);
+
+        return (
+          Array.isArray(value)
+          && typeof value[0].foo === 'boolean'
+        );
+      });
+
+    property('calls getFakeInstanceOf for propType instanceOf', () => {
+      const value = faker.parsePropType({ type: { name: 'instanceOf' } });
+
+      return value === 'error: instanceOf propType is not supported';
+    });
+
+    property('calls getFakeOneOf for propType oneOf', () => {
+      const prop = {
+        type: {
+          name: 'oneOf',
+          value: ['bool'],
+        },
+      };
+      const value = faker.parsePropType(prop);
+
+      return value === 'bool';
+    });
+
+    property('calls getFakeShape for propType shape', () => {
+      const prop = {
+        type: {
+          name: 'shape',
+          value: {
+            foo: { type: { name: 'bool' }, required: true },
+          },
+        },
+      };
+
+      const [value] = faker.parsePropType(prop);
+
+      return typeof value === 'boolean';
+    });
   });
 
   describe('getFakeAny', () => {
@@ -210,8 +288,8 @@ describe('src/faker.js', () => {
       });
 
     property('types returned are in the propType arrayOf', () => {
-      const { foo } = faker.getFakeArrayOf({ foo: { type: { name: 'bool' } } });
-      const { bar } = faker.getFakeArrayOf({ bar: { type: { name: 'number' } } });
+      const [{ foo }] = faker.getFakeArrayOf({ foo: { type: { name: 'bool' } } });
+      const [{ bar }] = faker.getFakeArrayOf({ bar: { type: { name: 'number' } } });
 
       return (
         typeof foo === 'boolean'
@@ -231,7 +309,7 @@ describe('src/faker.js', () => {
   describe('getFakeShape', () => {
     function buildChildMap(name) {
       const randomKey = `${Math.random()}`;
-      return { [randomKey]: { type: { name } } };
+      return { [randomKey]: { type: { name }, required: true } };
     }
 
     property('childProp type should match result type', () => {

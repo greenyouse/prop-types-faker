@@ -8,8 +8,6 @@ import { reactElement, htmlElementGenerator } from './generators/react-element';
 import { anyGenerator, any } from './generators/any';
 import { symbol, symbolGenerator } from './generators/symbol';
 
-let useRequired;
-
 /**
  * Fake functions for each propType are given here.
  * The return value is the fake value.
@@ -42,7 +40,7 @@ export function getFakeFunction() {
   return takeSample(jsc.fun(anyGenerator));
 }
 
-export function getFakeInstanceOf(elementName) {
+export function getFakeInstanceOf() {
   return 'error: instanceOf propType is not supported';
 }
 
@@ -73,10 +71,11 @@ export function getFakeSymbol() {
   return symbol();
 }
 export function getFakeArrayOf(childProps) {
-  return Object.entries(childProps).reduce((acc, [key, prop]) => ({
+  // childProps /*?*/
+  return Object.entries(childProps).reduce((acc, [key, prop]) => [
     // eslint-disable-next-line no-use-before-define
-    ...acc, [key]: parsePropType(prop),
-  }), {});
+    ...acc, { [key]: parsePropType(prop) },
+  ], []);
 }
 
 export function getFakeOneOf(elements) {
@@ -104,8 +103,7 @@ export function filterRequiredProps(prop) {
   return jsc.random(0, 1) === 0 ? prop : null;
 }
 
-// TODO: finish up unit tests for this
-function parsePropType(originalProp) {
+export function parsePropType(originalProp, useRequired = true) {
   let prop = originalProp;
   if (!useRequired) {
     prop = filterRequiredProps(prop);
@@ -140,8 +138,10 @@ function parsePropType(originalProp) {
       return getFakeArrayOf(prop.type.value);
     case 'instanceOf':
       return getFakeInstanceOf();
-    case 'oneOfType':
+    case 'oneOf':
       return getFakeOneOf(prop.type.value);
+    case 'oneOfType':
+      return getFakeArrayOf(prop.type.value);
     case 'shape':
       return getFakeShape(prop.type.value);
     default:
@@ -180,10 +180,8 @@ export function generateFake(reactComponent = {}, options = {}) {
 
   // set the randomness globally for all child functions
   setRandomness(randomness);
-  // set whether to use required props
-  useRequired = required;
 
-  const propTypes = parsePropTypes(reactComponent);
+  const propTypes = parsePropTypes(reactComponent, required);
 
   return Object.entries(propTypes).reduce((acc, [key, prop]) => ({
     ...acc, ...{ [key]: parsePropType(prop) },
