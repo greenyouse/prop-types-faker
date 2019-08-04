@@ -2,9 +2,10 @@
   "name": "prop-types-faker",
   "version": "0.1.0",
   "description": "Generate fixture data based on React propTypes",
-  "main": "./src/faker.js",
+  "main": "./dist/faker.js",
   "scripts": {
     "build": "webpack --mode=production",
+    "build:watch": "webpack --mode=production --watch",
     "lint": "eslint src",
     "lint:fix": "eslint --fix src",
     "healthcheck": "npm run test && npm run lint",
