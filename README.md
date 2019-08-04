@@ -32,8 +32,8 @@ Then use `generateProps` to create valid data for the component under test:
 import parsePropTypes from 'parse-prop-types';
 import React from 'react';
 import { shallow } from 'enzyme';
-import { Greetings } from './index';
 import generateFake from 'prop-types-faker';
+import { Greetings } from './index';
 
 
 describe('Greetings', () => {
