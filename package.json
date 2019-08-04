@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Generate fixture data based on React propTypes",
   "main": "./dist/faker.js",
+  "files": [
+    "dist/*.js"
+  ],
   "scripts": {
     "build": "webpack --mode=production",
     "build:watch": "webpack --mode=production --watch",
