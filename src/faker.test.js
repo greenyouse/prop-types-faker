@@ -1,3 +1,6 @@
+/* eslint-disable react/require-default-props */
+/* eslint-disable react/no-unused-prop-types */
+/* eslint-disable react/forbid-prop-types */
 /* eslint-disable react/forbid-foreign-prop-types */
 import React from 'react';
 import propTypes from 'prop-types';
@@ -9,8 +12,17 @@ import { setRandomness } from './randomness';
 jest.mock('./randomness');
 
 describe('src/faker.js', () => {
+  let element;
+  beforeEach(() => {
+    jest.resetAllMocks();
+    element = () => React.createElement('div', [], '');
+    element.propTypes = {
+      foo: propTypes.string.isRequired,
+      bar: propTypes.bool,
+    };
+  });
+
   describe('generateFake', () => {
-    let element;
     const positiveIntegersArb = jsc.nat.smap(
       x => x + 1,
       x => x - 1,
@@ -23,16 +35,6 @@ describe('src/faker.js', () => {
         === Object.entries(fakeProps).length
       );
     }
-
-    beforeEach(() => {
-      element = () => React.createElement('div', [], '');
-      element.propTypes = {
-        foo: propTypes.string.isRequired,
-        bar: propTypes.bool,
-      };
-
-      jest.resetAllMocks();
-    });
 
     property('error returned when no component is given',
       jsc.oneof(
@@ -85,7 +87,7 @@ describe('src/faker.js', () => {
     });
   });
 
-  describe('parsePropType', () => {
+  describe.skip('parsePropType', () => {
     function makePropType(name, required) {
       return { type: { name }, required };
     }
@@ -205,123 +207,212 @@ describe('src/faker.js', () => {
 
   describe('getFakeAny', () => {
     property('is anything', () => {
-      const anything = faker.getFakeAny();
-      return anything !== null && anything !== undefined;
+      element.propTypes = {
+        foo: propTypes.any.isRequired,
+      };
+
+
+      const props = faker.generateFake(element);
+      return props.foo !== null && props.foo !== undefined;
     });
   });
 
   describe('getFakeArray', () => {
-    property('is an array', () => Array.isArray(faker.getFakeArray()));
+    property('is an array', () => {
+      element.propTypes = {
+        foo: propTypes.array.isRequired,
+      };
+
+      const props = faker.generateFake(element);
+      return Array.isArray(props.foo);
+    });
   });
 
   describe('getFakeBoolean', () => {
-    property('is a boolean', () => typeof faker.getFakeBoolean() === 'boolean');
+    property('is a boolean', () => {
+      element.propTypes = {
+        foo: propTypes.bool.isRequired,
+      };
+
+      const props = faker.generateFake(element);
+      return typeof props.foo === 'boolean';
+    });
   });
 
   describe('getFakeCustom', () => {
-    property('is an error message', () => (
-      faker.getFakeCustom()
-      === 'error: custom propTypes are not supported'
-    ));
+    property('is an error message', () => {
+      element.propTypes = {
+        // eslint-disable-next-line consistent-return
+        foo(props, propName, componentName) {
+          if (!/matchme/.test(props[propName])) {
+            return new Error(
+              `Invalid prop \`${propName}\` supplied to\
+            \`${componentName}\`. Validation failed.`,
+            );
+          }
+        },
+      };
+
+      const props = faker.generateFake(element);
+      return props.foo === 'error: custom propTypes are not supported';
+    });
   });
 
   describe('getFakeElement', () => {
     property('is a React Element', () => {
-      const element = faker.getFakeElement();
-      return typeof element.$$typeof === 'symbol';
+      element.propTypes = {
+        foo: propTypes.element.isRequired,
+      };
+
+      const props = faker.generateFake(element);
+
+      return typeof props.foo.$$typeof === 'symbol';
     });
   });
 
   describe('getFakeElementType', () => {
     property('is a valid html element type', () => {
-      const validElements = new Set(validHTMLElements);
-      const type = faker.getFakeElementType();
+      element.propTypes = {
+        foo: propTypes.elementType.isRequired,
+      };
 
-      return validElements.has(type);
+      const props = faker.generateFake(element);
+      const validElements = new Set(validHTMLElements);
+
+      return validElements.has(props.foo);
     });
-  }); describe('getFakeFunction', () => {
-    property('is a function', () => typeof faker.getFakeFunction() === 'function');
+  });
+
+  describe('getFakeFunction', () => {
+    property('is a function', () => {
+      element.propTypes = {
+        foo: propTypes.func.isRequired,
+      };
+
+      const props = faker.generateFake(element);
+
+      return typeof props.foo === 'function';
+    });
   });
 
   describe('getFakeInstanceOf', () => {
-    property('is an error message', () => (
-      faker.getFakeInstanceOf()
-      === 'error: instanceOf propType is not supported'
-    ));
+    property('is an error message', () => {
+      element.propTypes = {
+        foo: propTypes.instanceOf(element).isRequired,
+      };
+
+      const props = faker.generateFake(element);
+
+      return props.foo === 'error: instanceOf propType is not supported';
+    });
   });
 
   describe('getFakeNode', () => {
     // lots of possible types
-    property('does not return null', () => faker.getFakeNode() !== null);
+    property('does not return null', () => { 
+      element.propTypes = {
+        foo: propTypes.node.isRequired,
+      };
+
+      const props = faker.generateFake(element);
+
+      return props.foo !== null;
+    });
   });
 
   describe('getFakeNumber', () => {
-    property('is a number', () => typeof faker.getFakeNumber() === 'number');
+    property('is a number', () => {
+      element.propTypes = {
+        foo: propTypes.number.isRequired,
+      };
+
+      const props = faker.generateFake(element);
+
+      return typeof props.foo === 'number';
+    });
   });
 
   describe('getFakeObject', () => {
-    property('is an object', () => typeof faker.getFakeObject() === 'object');
+    property('is an object', () => {
+      element.propTypes = {
+        foo: propTypes.object.isRequired,
+      };
+
+      const props = faker.generateFake(element);
+
+      return typeof props.foo === 'object';
+    });
   });
 
   describe('getFakeString', () => {
-    property('is a string', () => typeof faker.getFakeString() === 'string');
+    property('is a string', () => {
+      element.propTypes = {
+        foo: propTypes.string.isRequired,
+      };
+
+      const props = faker.generateFake(element);
+
+      return typeof props.foo === 'string';
+    });
   });
 
   describe('getFakeSymbol', () => {
-    property('is a symbol', () => typeof faker.getFakeSymbol() === 'symbol');
+    property('is a symbol', () => {
+      element.propTypes = {
+        foo: propTypes.symbol.isRequired,
+      };
+
+      const props = faker.generateFake(element);
+
+      return typeof props.foo === 'symbol';
+    });
   });
 
   describe('getFakeArrayOf', () => {
-    function buildTypeMap(key, name) {
-      return { [key]: { type: { name } } };
-    }
-
-    property('key names are preserved',
-      'nearray nestring', (keys) => {
-        const allKeys = new Set(keys);
-        const typeMap = keys.reduce((acc, key) => ({
-          ...acc, ...buildTypeMap(key, 'string'),
-        }), {});
-
-        return Object.keys(typeMap)
-          .every(key => allKeys.has(key));
-      });
-
     property('types returned are in the propType arrayOf', () => {
-      const [{ foo }] = faker.getFakeArrayOf({ foo: { type: { name: 'bool' } } });
-      const [{ bar }] = faker.getFakeArrayOf({ bar: { type: { name: 'number' } } });
+      element.propTypes = {
+        foo: propTypes.arrayOf(propTypes.bool).isRequired,
+        bar: propTypes.arrayOf(propTypes.number).isRequired,
+      };
+
+      const props = faker.generateFake(element);
 
       return (
-        typeof foo === 'boolean'
-        && typeof bar === 'number'
+        props.foo.every(el => typeof el === 'boolean')
+        && props.bar.every(el => typeof el === 'number')
       );
     });
   });
 
   describe('getFakeOneOf', () => {
     property('selects from the choices', jsc.nearray(jsc.nat), (nats) => {
+      element.propTypes = {
+        foo: propTypes.oneOf(nats).isRequired,
+      };
+
+      const props = faker.generateFake(element);
+
       const elementSet = new Set(nats);
-      const element = faker.getFakeOneOf(nats);
-      return elementSet.has(element);
+      return elementSet.has(props.foo);
     });
   });
 
   describe('getFakeShape', () => {
-    function buildChildMap(name) {
-      const randomKey = `${Math.random()}`;
-      return { [randomKey]: { type: { name }, required: true } };
-    }
-
     property('childProp type should match result type', () => {
-      const boolProps = buildChildMap('bool');
-      const numTypes = buildChildMap('number');
+      element.propTypes = {
+        foo: propTypes.shape({
+          baz: propTypes.bool.isRequired,
+        }).isRequired,
+        bar: propTypes.shape({
+          quxx: propTypes.number.isRequired,
+        }).isRequired,
+      };
 
-      const boolTypes = faker.getFakeShape(boolProps);
-      const numberTypes = faker.getFakeShape(numTypes);
+      const props = faker.generateFake(element);
 
       return (
-        boolTypes.every(type => typeof type === 'boolean')
-        && numberTypes.every(type => typeof type === 'number')
+        typeof props.foo.baz === 'boolean'
+        && typeof props.bar.quxx === 'number'
       );
     });
   });

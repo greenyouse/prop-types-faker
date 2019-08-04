@@ -11,39 +11,39 @@ import { symbol } from './generators/symbol';
  * Fake functions for each propType are given here.
  * The return value is the fake value.
  */
-export function getFakeAny() {
+function getFakeAny() {
   return any();
 }
 
-export function getFakeArray() {
+function getFakeArray() {
   return takeSample(jsc.nearray(anyGenerator));
 }
 
-export function getFakeBoolean() {
+function getFakeBoolean() {
   return takeSample(jsc.bool);
 }
 
-export function getFakeCustom() {
+function getFakeCustom() {
   return 'error: custom propTypes are not supported';
 }
 
-export function getFakeElement() {
+function getFakeElement() {
   return reactElement();
 }
 
-export function getFakeElementType() {
+function getFakeElementType() {
   return reactElement().type;
 }
 
-export function getFakeFunction() {
+function getFakeFunction() {
   return takeSample(jsc.fun(anyGenerator));
 }
 
-export function getFakeInstanceOf() {
+function getFakeInstanceOf() {
   return 'error: instanceOf propType is not supported';
 }
 
-export function getFakeNode() {
+function getFakeNode() {
   return takeSample(jsc.oneof(
     htmlElementGenerator,
     jsc.array,
@@ -54,37 +54,40 @@ export function getFakeNode() {
   ));
 }
 
-export function getFakeNumber() {
+function getFakeNumber() {
   return takeSample(jsc.nat);
 }
 
-export function getFakeObject() {
+function getFakeObject() {
   return takeSample(jsc.dict(anyGenerator));
 }
 
-export function getFakeString() {
+function getFakeString() {
   return takeSample(jsc.string);
 }
 
-export function getFakeSymbol() {
+function getFakeSymbol() {
   return symbol();
 }
-export function getFakeArrayOf(childProps) {
+
+function getFakeArrayOf(childProps) {
   // childProps /*?*/
   return Object.entries(childProps).reduce((acc, [key, prop]) => [
     // eslint-disable-next-line no-use-before-define
-    ...acc, { [key]: parsePropType(prop) },
+    ...acc, parsePropType({ type: { [key]: prop } }),
   ], []);
 }
 
-export function getFakeOneOf(elements) {
+function getFakeOneOf(elements) {
   const constants = elements.map(jsc.constant);
   return takeSample(jsc.oneof(constants));
 }
 
-export function getFakeShape(childProps) {
-  // eslint-disable-next-line no-use-before-define
-  return Object.values(childProps).map(parsePropType);
+function getFakeShape(childProps) {
+  return Object.entries(childProps).reduce((acc, [key, prop]) => {
+    // eslint-disable-next-line no-use-before-define
+    return { ...acc, [key]: parsePropType(prop) };
+  }, {});
 }
 
 /**
@@ -94,7 +97,7 @@ export function getFakeShape(childProps) {
  * @param {Object} prop
  * @returns {Object|null}
  */
-export function filterRequiredProps(prop) {
+function filterRequiredProps(prop) {
   const { required } = prop;
 
   if (required === true) return prop;
@@ -121,6 +124,8 @@ export function parsePropType(originalProp, useRequired = true) {
       return getFakeCustom();
     case 'element':
       return getFakeElement();
+    case 'elementType':
+      return getFakeElementType();
     case 'func':
       return getFakeFunction();
     case 'number':
