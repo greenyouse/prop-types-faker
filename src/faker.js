@@ -84,10 +84,10 @@ function getFakeOneOf(elements) {
 }
 
 function getFakeShape(childProps) {
-  return Object.entries(childProps).reduce((acc, [key, prop]) => {
+  return Object.entries(childProps).reduce((acc, [key, prop]) => ({
     // eslint-disable-next-line no-use-before-define
-    return { ...acc, [key]: parsePropType(prop) };
-  }, {});
+    ...acc, [key]: parsePropType(prop),
+  }), {});
 }
 
 /**
@@ -105,7 +105,7 @@ function filterRequiredProps(prop) {
   return jsc.random(0, 1) === 0 ? prop : null;
 }
 
-export function parsePropType(originalProp, useRequired = true) {
+function parsePropType(originalProp, useRequired = true) {
   let prop = originalProp;
   if (!useRequired) {
     prop = filterRequiredProps(prop);
@@ -145,7 +145,7 @@ export function parsePropType(originalProp, useRequired = true) {
     case 'oneOf':
       return getFakeOneOf(prop.type.value);
     case 'oneOfType':
-      return getFakeArrayOf(prop.type.value);
+      return getFakeArrayOf.apply(this, prop.type.value);
     case 'shape':
       return getFakeShape(prop.type.value);
     default:
@@ -169,7 +169,7 @@ function isEmptyComponent(component) {
  * @param {number} [options.randomness=1000] How random you want the data, large values take longer
  * @param {boolean} [options.required=true] Whether to use all non-required keys
  */
-export function generateFake(reactComponent = {}, options = {}) {
+export default function (reactComponent = {}, options = {}) {
   const {
     // TODO: implement later
     // eslint-disable-next-line no-unused-vars
