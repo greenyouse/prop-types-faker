@@ -12,37 +12,52 @@ basic component.
 Create a component to put under test:
 
 ```javascript
+import React from 'react';
+import PropTypes from 'prop-types';
+
 // functional react component
-export default const Greetings = name => <span>{`hello ${name}!`}</span>
+export const Greetings = ({ name }) => <span>{`hello ${name}!`}</span>;
+
 
 // make sure to set the propTypes
 Greetings.propTypes = {
-    name: propTypes.string
+    name: PropTypes.string
 }
 ```
 
 Then use `generateProps` to create valid data for the component under test:
 
 ```javascript
+// NOTE: this needs to be first in the imports
+import parsePropTypes from 'parse-prop-types';
+import React from 'react';
 import { shallow } from 'enzyme';
-import Greetings from './Greetings';
+import { Greetings } from './index';
+import generateFake from 'prop-types-faker';
+
 
 describe('Greetings', () => {
     let fakeProps;
 
     beforeEach(() => {
-        fakeProps = generateProps(Greetings);
+        fakeProps = generateFake(Greetings);
     });
 
     it('should display the name', () => {
-        const expectedText = `hello ${fakeProps}!`;
+        const expectedText = `hello ${fakeProps.name}!`;
 
         const actual = shallow(<Greetings {...fakeProps} />)
 
-        expect(actual.html().innerText).toBe(expectedText)
+        expect(actual.find('span').text()).toBe(expectedText)
     });
 });
 ```
+
+There's a demo project to show an example of how to use the library [here](https://github.com/greenyouse/prop-types-faker-testing).
+
+## Gotchas
+
+Don't forget to import parsePropTypes at the top of your test files.
 
 ## Contributions
 Feel free to open issues for bugs. I'm still shaking out some new ideas and it
