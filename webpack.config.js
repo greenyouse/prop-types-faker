@@ -5,6 +5,7 @@ module.exports = {
   output: {
     library: 'propTypesFaker',
     libraryTarget: 'umd',
+    globalObject: 'typeof self !== \'undefined\' ? self : this',
     filename: 'faker.js',
     path: path.resolve(__dirname, 'dist')
   },
